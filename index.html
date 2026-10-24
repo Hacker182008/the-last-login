@@ -1,0 +1,151 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#100907">
+<meta name="description" content="The Last Login — beginner-friendly terminal forensics CTF.">
+<title>The Last Login | Cyber Case Files</title>
+<style>
+:root{color-scheme:dark;--bg:#100907;--panel:#1b100d;--line:#593027;--text:#fff3eb;--muted:#c6a99a;--red:#ff684f;--orange:#ff8a65}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(ellipse at 12% 0%,rgba(142,35,20,.26),transparent 38rem),radial-gradient(ellipse at 92% 22%,rgba(105,49,28,.2),transparent 32rem),linear-gradient(145deg,#100806,#1a0d09 55%,#0b0706);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}
+a{color:inherit}button,input{font:inherit}
+.shell{width:min(1080px,calc(100% - 36px));margin:auto}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 0;border-bottom:1px solid #ffffff18}
+.brand{display:flex;align-items:center;gap:11px;font-size:.9rem;font-weight:800;letter-spacing:.13em;text-decoration:none}
+.brand-mark{display:grid;place-items:center;width:38px;height:38px;border:1px solid #793b2c;border-radius:12px;color:var(--orange);background:#4d1c1273}
+.case-id{color:var(--muted);font-size:.78rem;letter-spacing:.14em}
+.hero{padding:76px 0 44px}
+.eyebrow{display:inline-flex;align-items:center;gap:9px;color:var(--orange);font-size:.78rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase}
+.eyebrow:before{content:"";width:22px;height:2px;background:var(--orange)}
+h1{margin:16px 0 14px;font-size:clamp(2.7rem,8vw,5.7rem);line-height:.99;letter-spacing:-.065em}
+h1 span{color:var(--red)}
+.lead{max-width:690px;color:#dfc7bb;font-size:clamp(1.05rem,2vw,1.22rem)}
+.grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(270px,.8fr);gap:20px;padding:18px 0 66px}
+.panel{border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,#26140ff7,#130a08fa);box-shadow:0 18px 55px #0004;overflow:hidden}
+.panel-inner{padding:clamp(20px,3vw,30px)}
+.panel-head{display:flex;align-items:center;gap:12px;margin-bottom:15px}
+.panel-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border:1px solid #793d2e;border-radius:13px;color:var(--red);background:#321710;font-size:1.15rem}
+h2{margin:0;font-size:1.22rem;letter-spacing:-.02em}
+h3{margin:24px 0 8px;font-size:.98rem}
+p{margin:10px 0;color:#dfc7bb}
+.muted{color:var(--muted)}
+.case-callout{margin-top:22px;padding:16px 17px;border-left:3px solid var(--orange);border-radius:0 12px 12px 0;background:#69261633}
+.case-callout strong{display:block;margin-bottom:4px;color:#ffe1d2;font-size:.78rem;letter-spacing:.12em}
+ul{padding-left:20px;color:#dfc7bb}
+li{padding:3px 0}
+.download-card{padding:19px;border:1px solid #70402f;border-radius:15px;background:linear-gradient(135deg,#5b271778,#23120da0)}
+.file-row{display:flex;align-items:center;gap:13px;margin-bottom:16px}
+.file-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;color:var(--orange);background:#321710;font-size:1.35rem}
+.file-name{font-weight:800;overflow-wrap:anywhere}
+.file-meta{color:var(--muted);font-size:.8rem}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:48px;padding:12px 16px;border:1px solid transparent;border-radius:12px;color:#1a0805;background:linear-gradient(100deg,#ff795d,#d94a35);font-weight:850;text-decoration:none;cursor:pointer;transition:transform .18s,filter .18s}
+.button:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.button:focus-visible,input:focus-visible{outline:3px solid #ffad8d;outline-offset:3px}
+.steps{display:grid;gap:17px;margin-top:20px}
+.step{display:grid;grid-template-columns:38px minmax(0,1fr);gap:13px;align-items:start}
+.step-number{display:grid;place-items:center;width:34px;height:34px;margin-top:1px;border:1px solid #8c4432;border-radius:11px;color:#ffe2d4;background:linear-gradient(145deg,#3a1b13,#1d0e0a);font-size:.88rem;line-height:1;font-weight:850;box-shadow:0 0 0 3px #8b37231a}
+.step-copy{min-width:0;padding-top:2px}
+.step strong{display:block;color:var(--text);font-size:.94rem;line-height:1.4}
+.step span{display:block;color:var(--muted);font-size:.88rem;line-height:1.5;margin-top:3px}
+.submit-panel{grid-column:1/-1}
+.submit-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;margin-top:18px}
+label{display:block;margin-bottom:7px;color:#f0d9ce;font-size:.88rem;font-weight:700}
+input{width:100%;min-height:49px;padding:12px 14px;border:1px solid #704333;border-radius:12px;color:var(--text);background:#120907}
+.submit-grid .button{width:auto;min-width:150px}
+.feedback{display:none;margin-top:14px;padding:13px 15px;border:1px solid;border-radius:12px;font-weight:700}
+.feedback.show{display:block}
+.feedback.error{color:#ffd8d0;border-color:#a44435;background:#6820164d}
+.feedback.success{color:#ffe0c8;border-color:#9d4c31;background:#78361947}
+.privacy-note{margin-top:14px;color:#b89b8c;font-size:.78rem}
+footer{padding:22px 0 34px;border-top:1px solid #ffffff18;color:#b89b8c;font-size:.82rem}
+.footer-row{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media(max-width:760px){.hero{padding-top:54px}.grid{grid-template-columns:1fr}.submit-panel{grid-column:auto}.submit-grid{grid-template-columns:1fr}.submit-grid .button{width:100%}}
+@media(max-width:420px){.shell{width:calc(100% - 24px)}.topbar{padding:16px 0}.brand{font-size:.74rem;letter-spacing:.08em}.brand-mark{width:34px;height:34px}.case-id{font-size:.68rem}.hero{padding-top:44px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="shell topbar">
+<a class="brand" href="#top" aria-label="Cyber Case Files home"><span class="brand-mark" aria-hidden="true">⌁</span><span>CYBER CASE FILES</span></a>
+<span class="case-id">CASE 002 / TRAINING</span>
+</header>
+<main id="top" class="shell">
+<section class="hero" aria-labelledby="page-title">
+<div class="eyebrow">Digital forensics · Beginner CTF</div>
+<h1 id="page-title">THE LAST <span>LOGIN</span></h1>
+<p class="lead">One training server. A trail of suspicious login records. Follow the evidence, learn the commands, and uncover what happened.</p>
+</section>
+<div class="grid">
+<section class="panel" aria-labelledby="briefing-title">
+<div class="panel-inner">
+<div class="panel-head"><span class="panel-icon" aria-hidden="true">◈</span><h2 id="briefing-title">01 / Case briefing</h2></div>
+<p>A fictional training server recorded a series of login events. Some entries appear ordinary, while others may point to suspicious activity.</p>
+<p>Examine the supplied evidence and reconstruct the trail. You do not need prior cybersecurity experience: the case files introduce commands through clues.</p>
+<div class="case-callout"><strong>YOUR MISSION</strong>Follow the evidence from one clue to the next, derive the final flag, and submit it below to clear the case.</div>
+<h3>Rules of engagement</h3>
+<ul>
+<li>Use only the fictional files provided in the challenge package.</li>
+<li>Follow the clues in order; each discovery helps you choose your next step.</li>
+<li>Use Windows Command Prompt (CMD). No virtual machine or extra software is planned.</li>
+<li>Do not publish the solution or flag while others are playing.</li>
+</ul>
+<h3>What you need</h3>
+<p class="muted">A Windows computer, the downloaded case files, and curiosity. The package will guide you through each command.</p>
+</div>
+</section>
+<aside class="panel" aria-labelledby="download-title">
+<div class="panel-inner">
+<div class="panel-head"><span class="panel-icon" aria-hidden="true">⇩</span><h2 id="download-title">02 / Evidence package</h2></div>
+<p>Download the case bundle, extract it to a folder you can find, then begin with <strong>START_HERE.txt</strong>.</p>
+<div class="download-card">
+<div class="file-row"><span class="file-icon" aria-hidden="true">▤</span><div><div class="file-name">The_Last_Login_Challenge.zip</div><div class="file-meta">Evidence bundle · ZIP archive</div></div></div>
+<a class="button" href="The_Last_Login_Challenge.zip" download>Download case files <span aria-hidden="true">↗</span></a>
+</div>
+<div class="steps" aria-label="Getting started">
+<div class="step"><span class="step-number" aria-hidden="true">1</span><div class="step-copy"><strong>Download and extract</strong><span>Extract the ZIP before running commands.</span></div></div>
+<div class="step"><span class="step-number" aria-hidden="true">2</span><div class="step-copy"><strong>Read START_HERE.txt</strong><span>It explains the case and your first clue.</span></div></div>
+<div class="step"><span class="step-number" aria-hidden="true">3</span><div class="step-copy"><strong>Open Command Prompt</strong><span>Use the guided clues to investigate each record.</span></div></div>
+</div>
+<p class="privacy-note">This challenge uses fictional training data. Never upload personal files or real credentials as evidence.</p>
+</div>
+</aside>
+<section class="panel submit-panel" aria-labelledby="submit-title">
+<div class="panel-inner">
+<div class="panel-head"><span class="panel-icon" aria-hidden="true">⌘</span><h2 id="submit-title">03 / Submit your flag</h2></div>
+<p>Finished the investigation? Enter the flag exactly as recovered from the evidence.</p>
+<form id="flag-form" novalidate>
+<label for="flag-input">Recovered flag</label>
+<div class="submit-grid">
+<input id="flag-input" name="flag" type="text" placeholder="CC-Cyber{your_recovered_flag}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="flag-help flag-feedback">
+<button class="button" type="submit">Verify flag <span aria-hidden="true">→</span></button>
+</div>
+<p id="flag-help" class="privacy-note">The final flag is case-sensitive. Remove any spaces before or after it.</p>
+<div id="flag-feedback" class="feedback" role="status" aria-live="polite"></div>
+</form>
+<p class="privacy-note">Prototype note: this static-page checker is client-side and can be inspected in the page source. It is suitable for a learning demo, not for protecting secrets or running a high-stakes competition.</p>
+</div>
+</section>
+</div>
+</main>
+<footer><div class="shell footer-row"><span>CYBER CASE FILES · THE LAST LOGIN</span><span>Educational simulation · Fictional logs only</span></div></footer>
+<script>
+// Provisional flag; align this with the final evidence trail before release.
+const EXPECTED_FLAG = "CC-Cyber{follow_the_login_trail}";
+const form = document.getElementById("flag-form");
+const input = document.getElementById("flag-input");
+const feedback = document.getElementById("flag-feedback");
+form.addEventListener("submit",function(event){
+event.preventDefault();
+const submitted=input.value.trim();
+feedback.className="feedback show";
+if(!submitted){feedback.classList.add("error");feedback.textContent="Enter the flag you recovered from the investigation first.";input.focus();return;}
+if(submitted===EXPECTED_FLAG){feedback.classList.add("success");feedback.textContent="Congratulations for clearing the flag! Case successfully solved.";}
+else{feedback.classList.add("error");feedback.textContent="That flag doesn't match. Recheck your evidence and try again.";}
+});
+</script>
+</body>
+</html>
